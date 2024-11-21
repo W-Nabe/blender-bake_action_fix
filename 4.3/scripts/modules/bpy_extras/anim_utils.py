@@ -337,6 +337,9 @@ def bake_action_iter(
     # -------------------------------------------------------------------------
     # Collect transformations
 
+    scene = bpy.context.scene
+    action_bake_frame_set_range = 10
+
     while True:
         # Caller is responsible for setting the frame and updating the scene.
         frame = yield None
@@ -344,10 +347,19 @@ def bake_action_iter(
         # Signal we're done!
         if frame is None:
             break
+
         if bake_options.do_pose:
+            # DAMPED TRACK サイクルエラーを正常にベイクできるようにフレームのベイク前にフレームセットを10回行う
+            for _ in range(action_bake_frame_set_range):
+                scene.frame_set(int(frame))
+                bpy.context.view_layer.update()
             pose_info.append((frame, *pose_frame_info(obj)))
             armature_info.append((frame, armature_frame_info(obj)))
         if bake_options.do_object:
+            # DAMPED TRACK サイクルエラーを正常にベイクできるようにフレームのベイク前にフレームセットを10回行う
+            for _ in range(action_bake_frame_set_range):
+                scene.frame_set(int(frame))
+                bpy.context.view_layer.update()
             obj_info.append((frame, *obj_frame_info(obj)))
 
     # -------------------------------------------------------------------------
